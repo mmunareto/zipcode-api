@@ -1,9 +1,10 @@
 package services
 
 import (
+	"errors"
 	"github.com/mmunareto/zipcode-api/internal/clients"
 	"github.com/mmunareto/zipcode-api/internal/dto"
-	"net/http"
+	"time"
 )
 
 type ZipCodeService struct {
@@ -11,37 +12,70 @@ type ZipCodeService struct {
 	viaCepClient *clients.ViaCepClient
 }
 
-func NewZipCodeService(httpClient *http.Client) *ZipCodeService {
+func NewZipCodeService() *ZipCodeService {
 	return &ZipCodeService{
-		apiCepClient: clients.NewApiCepClient(httpClient),
-		viaCepClient: clients.NewViaCepClient(httpClient),
+		apiCepClient: clients.NewApiCepClient(),
+		viaCepClient: clients.NewViaCepClient(),
 	}
 }
 
-func (z *ZipCodeService) FindByZipCode(zipCode string) (*dto.ZipCodeOutput, error) {
-	channelApiCep := make(chan *dto.ZipCodeOutput)
-	channelViaCep := make(chan *dto.ZipCodeOutput)
+func (z *ZipCodeService) FindByZipCode(zipCode string) *dto.Result {
+	channelApiCep := make(chan *dto.Result)
+	channelViaCep := make(chan *dto.Result)
 
 	go func() {
-		apiCepResponse, _ := z.apiCepClient.FindByZipCode(zipCode)
-		apiCepOutPut := &dto.ZipCodeOutput{
-			Localidade: apiCepResponse.City,
+		provider := "ApiCep"
+		apiCepResponse, err := z.apiCepClient.FindByZipCode(zipCode)
+		if err != nil {
+			result := &dto.Result{Provider: provider, Error: err}
+			channelApiCep <- result
+			return
 		}
-		channelApiCep <- apiCepOutPut
+		apiCepOutPut := &dto.ZipCodeDetails{
+			ZipCode:  apiCepResponse.Code,
+			Address:  apiCepResponse.Address,
+			District: apiCepResponse.District,
+			City:     apiCepResponse.City,
+			State:    apiCepResponse.State,
+		}
+
+		result := &dto.Result{
+			Provider:       provider,
+			ZipCodeDetails: apiCepOutPut,
+		}
+		channelApiCep <- result
 	}()
 
 	go func() {
-		viaCepResponse, _ := z.viaCepClient.FindByZipCode(zipCode)
-		viaCepOutPut := &dto.ZipCodeOutput{
-			Cep: viaCepResponse.Cep,
+		provider := "ViaCep"
+		viaCepResponse, err := z.viaCepClient.FindByZipCode(zipCode)
+		if err != nil {
+			result := &dto.Result{Provider: provider, Error: err}
+			channelViaCep <- result
+			return
 		}
-		channelViaCep <- viaCepOutPut
+
+		viaCepOutPut := &dto.ZipCodeDetails{
+			ZipCode:  viaCepResponse.Cep,
+			Address:  viaCepResponse.Logradouro,
+			District: viaCepResponse.Bairro,
+			City:     viaCepResponse.Localidade,
+			State:    viaCepResponse.Uf,
+		}
+
+		result := &dto.Result{
+			Provider:       provider,
+			ZipCodeDetails: viaCepOutPut,
+		}
+		channelViaCep <- result
 	}()
 
 	select {
 	case msg := <-channelApiCep:
-		return msg, nil
+		return msg
 	case msg := <-channelViaCep:
-		return msg, nil
+		return msg
+	case <-time.After(1 * time.Second):
+		return &dto.Result{Error: errors.New("request timeout")}
 	}
 }

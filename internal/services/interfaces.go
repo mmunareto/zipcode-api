@@ -5,5 +5,5 @@ import (
 )
 
 type ZipCodeServiceInterface interface {
-	FindByZipCode(zipCode string) (*dto.ZipCodeOutput, error)
+	FindByZipCode(zipCode string) *dto.Result
 }

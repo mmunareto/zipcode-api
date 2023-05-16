@@ -1,14 +1,15 @@
 package dto
 
-type ZipCodeOutput struct {
-	Cep         string `json:"cep"`
-	Logradouro  string `json:"logradouro"`
-	Complemento string `json:"complemento"`
-	Bairro      string `json:"bairro"`
-	Localidade  string `json:"localidade"`
-	Uf          string `json:"uf"`
-	Ibge        string `json:"ibge"`
-	Gia         string `json:"gia"`
-	Ddd         string `json:"ddd"`
-	Siafi       string `json:"siafi"`
+type Result struct {
+	ZipCodeDetails *ZipCodeDetails `json:"zipCodeDetails,omitempty"`
+	Provider       string          `json:"provider,omitempty"`
+	Error          error           `json:"error,omitempty"`
+}
+
+type ZipCodeDetails struct {
+	ZipCode  string `json:"zipCode"`
+	Address  string `json:"address"`
+	District string `json:"district"`
+	State    string `json:"state"`
+	City     string `json:"city"`
 }

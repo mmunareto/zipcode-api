@@ -23,11 +23,12 @@ func (z *ZipCodeHandler) GetZipCodeDetails(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	zipDetails, err := z.ZipCodeService.FindByZipCode(id)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+	result := z.ZipCodeService.FindByZipCode(id)
+	if result.Error != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(result.Error.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(zipDetails)
+	json.NewEncoder(w).Encode(result)
 }

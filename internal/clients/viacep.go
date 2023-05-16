@@ -3,6 +3,7 @@ package clients
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -10,9 +11,9 @@ type ViaCepClient struct {
 	httpClient *http.Client
 }
 
-func NewViaCepClient(client *http.Client) *ViaCepClient {
+func NewViaCepClient() *ViaCepClient {
 	return &ViaCepClient{
-		httpClient: client,
+		httpClient: http.DefaultClient,
 	}
 }
 
@@ -34,14 +35,22 @@ func (c ViaCepClient) FindByZipCode(zipCode string) (*ViaCepOutPut, error) {
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		println(err)
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
 
 	var viaCepOutput ViaCepOutPut
 	err = json.Unmarshal(body, &viaCepOutput)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
 
-	return &viaCepOutput, err
+	return &viaCepOutput, nil
 }

@@ -11,7 +11,7 @@ import (
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	zipCodeService := services.NewZipCodeService(http.DefaultClient)
+	zipCodeService := services.NewZipCodeService()
 	zipCodeHandler := handlers.NewZipCodeHandler(zipCodeService)
 
 	r.Get("/zip-details/{zipCode}", zipCodeHandler.GetZipCodeDetails)

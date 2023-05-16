@@ -1,0 +1,2 @@
+## Get Zipcode
+GET http://localhost:8080/zip-details/06233-030
