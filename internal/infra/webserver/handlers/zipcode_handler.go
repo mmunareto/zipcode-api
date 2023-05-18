@@ -18,15 +18,15 @@ func NewZipCodeHandler(service services.ZipCodeServiceInterface) *ZipCodeHandler
 }
 
 func (z *ZipCodeHandler) GetZipCodeDetails(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "zipCode")
-	if id == "" {
+	zipCode := chi.URLParam(r, "zipCode")
+	if zipCode == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	result := z.ZipCodeService.FindByZipCode(id)
-	if result.Error != nil {
+	result := z.ZipCodeService.FindByZipCode(zipCode)
+	if result.Error != "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(result.Error.Error())
+		json.NewEncoder(w).Encode(result)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
