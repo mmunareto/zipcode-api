@@ -3,7 +3,7 @@ package dto
 type Result struct {
 	ZipCodeDetails *ZipCodeDetails `json:"zipCodeDetails,omitempty"`
 	Provider       string          `json:"provider,omitempty"`
-	Error          error           `json:"error,omitempty"`
+	Error          string          `json:"error,omitempty"`
 }
 
 type ZipCodeDetails struct {

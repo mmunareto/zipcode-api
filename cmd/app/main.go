@@ -10,7 +10,11 @@ import (
 
 func main() {
 	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
 	zipCodeService := services.NewZipCodeService()
 	zipCodeHandler := handlers.NewZipCodeHandler(zipCodeService)
 
